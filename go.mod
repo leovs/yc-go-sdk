@@ -6,8 +6,8 @@ require (
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.16.0
-	github.com/go-resty/resty/v2 v2.10.0
-	github.com/gofiber/fiber/v2 v2.51.0
+	github.com/go-resty/resty/v2 v2.11.0
+	github.com/gofiber/fiber/v2 v2.52.0
 	github.com/gomodule/redigo v1.8.9
 	github.com/xuanbo/requests v0.0.2
 	gopkg.in/yaml.v3 v3.0.1
