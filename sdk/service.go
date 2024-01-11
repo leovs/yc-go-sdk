@@ -19,7 +19,7 @@ import (
 // TPage 分页查询结构体
 type TPage[T any] struct {
 	Page     int   `json:"page"`
-	PageSize int   `json:"page_size"`
+	PageSize int   `json:"pageSize"`
 	Total    int64 `json:"total"`
 	Lists    []T   `json:"lists"`
 }
