@@ -128,7 +128,7 @@ func (s *Service[T, R]) Destroy(id uint, omits ...string) *errors.Message {
 }
 
 // Search 分页查询
-func (s *Service[T, R]) Search(page int, pageSize int, params any, order string) (*TPage[R], *errors.Message) {
+func (s *Service[T, R]) Search(page int, pageSize int, params any) (*TPage[R], *errors.Message) {
 	result := CreateTPage([]R{})
 	search := s.GetReadDb()
 
@@ -139,11 +139,6 @@ func (s *Service[T, R]) Search(page int, pageSize int, params any, order string)
 
 	// 获取总条数
 	search.Count(&result.Total)
-
-	// 排序
-	if order != "" {
-		search.Order(order)
-	}
 
 	// 获取分页数据
 	if err := search.Offset((page - 1) * pageSize).Limit(pageSize).
