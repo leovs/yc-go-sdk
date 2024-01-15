@@ -148,6 +148,30 @@ func (s *Service[T, R]) Search(page int, pageSize int, params any) (*TPage[R], *
 	return result, nil
 }
 
+// Order 排序
+func (s *Service[T, R]) Order(column string) *Service[T, R] {
+	s.db.Order(column)
+	return s
+}
+
+// Group 分组
+func (s *Service[T, R]) Group(name string) *Service[T, R] {
+	s.db.Group(name)
+	return s
+}
+
+// Having 分组条件
+func (s *Service[T, R]) Having(query string, values ...any) *Service[T, R] {
+	s.db.Having(query, values)
+	return s
+}
+
+// Select 查询
+func (s *Service[T, R]) Select(query string, values ...any) (result []R) {
+	s.db.Select(query, values).Find(&result)
+	return
+}
+
 // MakeCondition 生成查询器
 func MakeCondition(params any, gorm *gorm.DB) *gorm.DB {
 	fieldStruct := reflect.TypeOf(params)
@@ -179,7 +203,7 @@ func MakeCondition(params any, gorm *gorm.DB) *gorm.DB {
 		case "in":
 			gorm.Where(fmt.Sprintf("%s in ?", column), value.Interface())
 		case "order":
-			gorm.Order(fmt.Sprintf("%s %s", column, utils.Ternary(value.Bool(), "asc", "desc")))
+			gorm.Order(fmt.Sprintf("%s %s", column, utils.Ternary(value.Int() == 1, "asc", "desc")))
 		}
 	}
 	return gorm
