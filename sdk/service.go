@@ -128,7 +128,7 @@ func (s *Service[T, R]) Destroy(id uint, omits ...string) *errors.Message {
 }
 
 // Search 分页查询
-func (s *Service[T, R]) Search(page int, pageSize int, params any) (*TPage[R], *errors.Message) {
+func (s *Service[T, R]) Search(page int, pageSize int, params any, order string) (*TPage[R], *errors.Message) {
 	result := CreateTPage([]R{})
 	search := s.GetReadDb()
 
@@ -140,36 +140,17 @@ func (s *Service[T, R]) Search(page int, pageSize int, params any) (*TPage[R], *
 	// 获取总条数
 	search.Count(&result.Total)
 
+	// 排序
+	if order != "" {
+		search.Order(order)
+	}
+
 	// 获取分页数据
 	if err := search.Offset((page - 1) * pageSize).Limit(pageSize).
 		Find(&result.Lists).Error; err != nil {
 		return nil, _const.Failure.SetMsg(err.Error())
 	}
 	return result, nil
-}
-
-// Order 排序
-func (s *Service[T, R]) Order(column string) *Service[T, R] {
-	s.db.Order(column)
-	return s
-}
-
-// Group 分组
-func (s *Service[T, R]) Group(name string) *Service[T, R] {
-	s.db.Group(name)
-	return s
-}
-
-// Having 分组条件
-func (s *Service[T, R]) Having(query string, values ...any) *Service[T, R] {
-	s.db.Having(query, values)
-	return s
-}
-
-// Select 查询
-func (s *Service[T, R]) Select(query string, values ...any) (result []R) {
-	s.db.Select(query, values).Find(&result)
-	return
 }
 
 // MakeCondition 生成查询器
