@@ -7,7 +7,9 @@ import (
 
 // WithContextDb 数据库链接
 func WithContextDb(c *fiber.Ctx) error {
-	c.Locals("db", sdk.Runtime.GetDb().WithContext(c.Context()))
+	if db := sdk.Runtime.GetDb(); db != nil {
+		c.Locals("db", db.WithContext(c.Context()))
+	}
 	return c.Next()
 }
 

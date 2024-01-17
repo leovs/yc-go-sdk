@@ -23,6 +23,9 @@ func (e *Message) SetErrorCode(code int) *Message {
 	return &Message{Code: code, Data: e.Data, Msg: e.Msg}
 }
 func (e *Message) SetMsg(s string, prs ...interface{}) *Message {
+	if len(prs) == 0 {
+		return &Message{Code: e.Code, Data: e.Data, Msg: s}
+	}
 	return &Message{Code: e.Code, Data: e.Data, Msg: fmt.Sprintf(s, prs)}
 }
 

@@ -42,26 +42,28 @@ func (g *Gorm2Cache) Name() string {
 }
 
 func (g *Gorm2Cache) Initialize(db *gorm.DB) (err error) {
-	if err = db.Callback().Create().After("*").Register("gorm:cache:after_create", AfterCreate(g)); err != nil {
-		return err
-	}
+	if g.Config.Enable {
+		if err = db.Callback().Create().After("*").Register("gorm:cache:after_create", AfterCreate(g)); err != nil {
+			return err
+		}
 
-	if err = db.Callback().Delete().After("*").Register("gorm:cache:after_delete", AfterDelete(g)); err != nil {
-		return err
-	}
+		if err = db.Callback().Delete().After("*").Register("gorm:cache:after_delete", AfterDelete(g)); err != nil {
+			return err
+		}
 
-	if err = db.Callback().Update().After("*").Register("gorm:cache:after_update", AfterUpdate(g)); err != nil {
-		return err
-	}
+		if err = db.Callback().Update().After("*").Register("gorm:cache:after_update", AfterUpdate(g)); err != nil {
+			return err
+		}
 
-	_ = db.Callback().Query().Replace("gorm:query", BeforeQuery(g))
+		_ = db.Callback().Query().Replace("gorm:query", BeforeQuery(g))
 
-	/*if err = db.Callback().Query().Before("gorm:query").Register("gorm:cache:before_query", BeforeQuery(g)); err != nil {
-		return err
-	}*/
+		/*if err = db.Callback().Query().Before("gorm:query").Register("gorm:cache:before_query", BeforeQuery(g)); err != nil {
+			return err
+		}*/
 
-	if err = db.Callback().Query().After("*").Register("gorm:cache:after_query", AfterQuery(g)); err != nil {
-		return err
+		if err = db.Callback().Query().After("*").Register("gorm:cache:after_query", AfterQuery(g)); err != nil {
+			return err
+		}
 	}
 
 	g.db = db

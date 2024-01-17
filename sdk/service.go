@@ -34,21 +34,17 @@ func CreateTPage[T any](lists []T) *TPage[T] {
 	}
 }
 
-type TSearch struct {
-	Clause string
-	Column string
-}
-
 // Service 服务
 type Service[T any, R any] struct {
-	Data   T
-	Result R
-	db     *gorm.DB
+	Data T
+	Ctx  *fiber.Ctx
+	db   *gorm.DB
 }
 
 // WithContext 绑定上下文
 func (s *Service[T, R]) WithContext(c *fiber.Ctx) *errors.Message {
 	// 上下文取数据库
+	s.Ctx = c
 	idb := c.Locals("db")
 	if idb == nil {
 		return _const.DbConnectError
@@ -57,28 +53,48 @@ func (s *Service[T, R]) WithContext(c *fiber.Ctx) *errors.Message {
 	return nil
 }
 
+func (s *Service[T, R]) DB() *gorm.DB {
+	if s.db == nil {
+		s.db = Runtime.GetDb()
+	}
+	return s.db
+}
+
+// GetDbBy 获取指定DB
+func (s *Service[T, R]) GetDb(dbName string) *gorm.DB {
+	return s.DB().Clauses(dbresolver.Use(dbName)).Model(new(T))
+}
+
 // GetWriteDb 获取DB
 func (s *Service[T, R]) GetWriteDb() *gorm.DB {
-	return s.db.Clauses(dbresolver.Write).Model(new(T))
+	return s.DB().Clauses(dbresolver.Write).Model(new(T))
 }
 
 // GetReadDb 获取DB
 func (s *Service[T, R]) GetReadDb() *gorm.DB {
-	return s.db.Clauses(dbresolver.Read).Model(new(T))
+	return s.DB().Clauses(dbresolver.Read).Model(new(T))
 }
 
-// GetDb 获取DB
-func (s *Service[T, R]) GetDb(dbName string) *gorm.DB {
-	return s.db.Clauses(dbresolver.Use(dbName)).Model(new(T))
+func (s *Service[T, R]) GetCacheDb(ttl int64) *gorm.DB {
+	return s.Cache(ttl).DB().Clauses(dbresolver.Read).Model(new(T))
 }
 
 // FindById 获取信息
 func (s *Service[T, R]) FindById(id uint) (*R, *errors.Message) {
-	err := s.GetReadDb().First(&s.Result, id).Error
-	if err != nil {
+	var result R
+	if err := s.GetReadDb().Where("id = ?", id).First(&result).Error; err != nil {
 		return nil, _const.NoDataReturn
 	}
-	return &s.Result, nil
+	return &result, nil
+}
+
+// FindByField 获取信息
+func (s *Service[T, R]) FindByField(field string, value any) (*R, *errors.Message) {
+	var result R
+	if err := s.GetReadDb().Where(fmt.Sprintf("%s = ?", field), value).First(&result).Error; err != nil {
+		return nil, _const.NoDataReturn
+	}
+	return &result, nil
 }
 
 // Update 更新信息
@@ -98,13 +114,6 @@ func (s *Service[T, R]) Create(data *T, omits ...string) *errors.Message {
 		return _const.Failure.SetData(err.Error())
 	}
 	return nil
-}
-
-// Cache 是否开启缓存
-func (s *Service[T, R]) Cache(ttl int64) *Service[T, R] {
-	s.db.Statement.Settings.Store(_const.GormCacheEnablePrefix, true)
-	s.db.Statement.Settings.Store(_const.GormCacheTTLPrefix, ttl)
-	return s
 }
 
 // Delete 删除
@@ -146,6 +155,13 @@ func (s *Service[T, R]) Search(page int, pageSize int, params any) (*TPage[R], *
 		return nil, _const.Failure.SetMsg(err.Error())
 	}
 	return result, nil
+}
+
+// Cache 是否开启缓存
+func (s *Service[T, R]) Cache(ttl int64) *Service[T, R] {
+	s.DB().Statement.Settings.Store(_const.GormCacheEnablePrefix, true)
+	s.DB().Statement.Settings.Store(_const.GormCacheTTLPrefix, ttl)
+	return s
 }
 
 // MakeCondition 生成查询器
