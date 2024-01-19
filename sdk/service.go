@@ -60,7 +60,7 @@ func (s *Service[T, R]) DB() *gorm.DB {
 	return s.db
 }
 
-// GetDbBy 获取指定DB
+// GetDb 获取指定DB
 func (s *Service[T, R]) GetDb(dbName string) *gorm.DB {
 	return s.DB().Clauses(dbresolver.Use(dbName)).Model(new(T))
 }
@@ -92,6 +92,15 @@ func (s *Service[T, R]) FindById(id uint) (*R, *errors.Message) {
 func (s *Service[T, R]) FindByField(field string, value any) (*R, *errors.Message) {
 	var result R
 	if err := s.GetReadDb().Where(fmt.Sprintf("%s = ?", field), value).First(&result).Error; err != nil {
+		return nil, _const.NoDataReturn
+	}
+	return &result, nil
+}
+
+// FindByFields 获取信息
+func (s *Service[T, R]) FindByFields(fields any) (*R, *errors.Message) {
+	var result R
+	if err := s.GetReadDb().Where(fields).First(&result).Error; err != nil {
 		return nil, _const.NoDataReturn
 	}
 	return &result, nil
@@ -171,10 +180,16 @@ func MakeCondition(params any, gorm *gorm.DB) *gorm.DB {
 	for i := 0; i < fieldStruct.NumField(); i++ {
 		field := fieldStruct.Field(i)
 		value := valueStruct.FieldByName(field.Name)
+		kind := field.Type.Kind()
 		tag := field.Tag.Get("search")
 		tagSetting := schema.ParseTagSetting(tag, ";")
 
 		if value.IsZero() || tag == "-" {
+			continue
+		}
+
+		if kind == reflect.Struct {
+			gorm = MakeCondition(valueStruct.Field(i).Interface(), gorm)
 			continue
 		}
 
