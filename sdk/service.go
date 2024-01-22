@@ -188,8 +188,8 @@ func MakeCondition(params any, gorm *gorm.DB) *gorm.DB {
 			continue
 		}
 
-		if kind == reflect.Struct {
-			gorm = MakeCondition(valueStruct.Field(i).Interface(), gorm)
+		if !value.CanSet() && kind == reflect.Struct {
+			MakeCondition(valueStruct.Field(i).Interface(), gorm)
 			continue
 		}
 
@@ -226,7 +226,6 @@ func GormErrorAs(gorm *gorm.DB) error {
 		if strings.Contains(e, "Duplicate entry") {
 			return _const.DataExisted
 		}
-		fmt.Printf("GormErrorAs: %v\n", gorm.Error)
 		return gorm.Error
 	}
 	if gorm.RowsAffected <= 0 {

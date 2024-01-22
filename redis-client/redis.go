@@ -4,13 +4,10 @@
 package redis_client
 
 import (
-	"encoding/gob"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gomodule/redigo/redis"
 	"github.com/leovs/yc-go-sdk/log"
-	"reflect"
 	"time"
 )
 
@@ -177,38 +174,9 @@ func (e *RedisClient) GetObject(key string, ptr any) error {
 }
 
 func (e *RedisClient) serialize(value any) ([]byte, error) {
-	err := e.registerGobConcreteType(value)
-	if err != nil {
-		return nil, err
-	}
-
-	if reflect.TypeOf(value).Kind() == reflect.Struct {
-		return nil, fmt.Errorf("serialize func only take pointer of a struct")
-	}
-
-	marshal, err := json.Marshal(value)
-	if err != nil {
-		return nil, err
-	}
-	return marshal, nil
+	return json.Marshal(value)
 }
 
 func (e *RedisClient) deserialize(byt []byte, ptr any) (err error) {
 	return json.Unmarshal(byt, ptr)
-}
-
-func (e *RedisClient) registerGobConcreteType(value any) error {
-	t := reflect.TypeOf(value)
-	switch t.Kind() {
-	case reflect.Ptr:
-		v := reflect.ValueOf(value)
-		i := v.Elem().Interface()
-		gob.Register(&i)
-	case reflect.Struct, reflect.Map, reflect.Slice:
-		gob.Register(value)
-	case reflect.String, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Bool, reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128:
-	default:
-		return fmt.Errorf("unhandled type: %v", t)
-	}
-	return nil
 }

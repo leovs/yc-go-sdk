@@ -22,11 +22,14 @@ func BeforeQuery(cache *Gorm2Cache) func(db *gorm.DB) {
 					key := GenSearchCacheKey(tableName, sql, db.Statement.Vars...)
 					if err := cache.GetBean(key, db.Statement.Dest); err == nil {
 						cache.IncrHitCount()
+						// 命中缓存，设置RowsAffected，如果不设置会造成count方法返回0
+						db.Statement.RowsAffected = 1
 						db.Set(_const.GormCacheHitPrefix, true)
 						return
 					}
 				}
 				// 未命中缓存，执行查询
+				db.Set(_const.GormCacheHitPrefix, false)
 				rows, err := db.Statement.ConnPool.QueryContext(db.Statement.Context, sql, db.Statement.Vars...)
 				if err != nil {
 					_ = db.AddError(err)
