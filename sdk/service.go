@@ -80,30 +80,21 @@ func (s *Service[T, R]) GetCacheDb(ttl int64) *gorm.DB {
 }
 
 // FindById 获取信息
-func (s *Service[T, R]) FindById(id uint) (*R, *errors.Message) {
-	var result R
-	if err := s.GetReadDb().Where("id = ?", id).First(&result).Error; err != nil {
-		return nil, _const.NoDataReturn
-	}
-	return &result, nil
+func (s *Service[T, R]) FindById(id uint) (result *R, err *errors.Message) {
+	return s.FindByField("id", id)
 }
 
 // FindByField 获取信息
-func (s *Service[T, R]) FindByField(field string, value any) (*R, *errors.Message) {
-	var result R
-	if err := s.GetReadDb().Where(fmt.Sprintf("%s = ?", field), value).First(&result).Error; err != nil {
-		return nil, _const.NoDataReturn
-	}
-	return &result, nil
+func (s *Service[T, R]) FindByField(field string, value any) (result *R, err *errors.Message) {
+	return s.FindByFields(map[string]interface{}{field: value})
 }
 
 // FindByFields 获取信息
-func (s *Service[T, R]) FindByFields(fields any) (*R, *errors.Message) {
-	var result R
+func (s *Service[T, R]) FindByFields(fields any) (result *R, err *errors.Message) {
 	if err := s.GetReadDb().Where(fields).First(&result).Error; err != nil {
 		return nil, _const.NoDataReturn
 	}
-	return &result, nil
+	return
 }
 
 // Update 更新信息

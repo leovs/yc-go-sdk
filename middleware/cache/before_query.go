@@ -7,6 +7,7 @@ import (
 	_const "github.com/leovs/yc-go-sdk/const"
 	"gorm.io/gorm"
 	"gorm.io/gorm/callbacks"
+	"reflect"
 )
 
 func BeforeQuery(cache *Gorm2Cache) func(db *gorm.DB) {
@@ -23,7 +24,16 @@ func BeforeQuery(cache *Gorm2Cache) func(db *gorm.DB) {
 					if err := cache.GetBean(key, db.Statement.Dest); err == nil {
 						cache.IncrHitCount()
 						// 命中缓存，设置RowsAffected，如果不设置会造成count方法返回0
-						db.Statement.RowsAffected = 1
+						if db.Statement.Dest != nil {
+							db.Statement.RowsAffected = 1
+							valueOf := reflect.ValueOf(db.Statement.Dest)
+							if valueOf.Kind() == reflect.Ptr {
+								valueOf = valueOf.Elem()
+							}
+							if valueOf.Kind() == reflect.Slice || valueOf.Kind() == reflect.Array {
+								db.Statement.RowsAffected = int64(valueOf.Len())
+							}
+						}
 						db.Set(_const.GormCacheHitPrefix, true)
 						return
 					}

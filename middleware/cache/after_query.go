@@ -13,7 +13,7 @@ func AfterQuery(cache *Gorm2Cache) func(db *gorm.DB) {
 	return func(db *gorm.DB) {
 		if !db.DryRun && db.Error == nil && cache.IsCache(db) {
 			// 是否已被缓存命中
-			if _, ok := db.Get(_const.GormCacheHitPrefix); ok {
+			if v, ok := db.Get(_const.GormCacheHitPrefix); ok && v.(bool) {
 				log.Debug("Gorm2Cache cache hit: %v\n", cache.GetHitCount())
 				return
 			}
