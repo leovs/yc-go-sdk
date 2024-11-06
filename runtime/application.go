@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/gofiber/fiber/v2"
 	redis_client "github.com/leovs/yc-go-sdk/redis-client"
 	"gorm.io/gorm"
@@ -11,6 +12,7 @@ const debugFlag = "debug"
 
 type Application struct {
 	db      *gorm.DB
+	es      *elasticsearch.TypedClient
 	redis   *redis_client.RedisClient
 	engine  *fiber.App
 	mux     sync.RWMutex
@@ -41,6 +43,19 @@ func (e *Application) GetDb() *gorm.DB {
 	e.mux.Lock()
 	defer e.mux.Unlock()
 	return e.db
+}
+
+// SetEs 设置对应key的es
+func (e *Application) SetEs(es *elasticsearch.TypedClient) {
+	e.mux.Lock()
+	defer e.mux.Unlock()
+	e.es = es
+}
+
+func (e *Application) GetEs() *elasticsearch.TypedClient {
+	e.mux.Lock()
+	defer e.mux.Unlock()
+	return e.es
 }
 
 // SetEngine 设置路由引擎

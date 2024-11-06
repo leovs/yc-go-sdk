@@ -27,6 +27,7 @@ type Settings struct {
 	RedisConfig    *RedisConfig    `yaml:"redis"`      // Redis配置
 	ServerConfig   *ServerConfig   `yaml:"server"`     // Gin配置
 	DatabaseConfig *DatabaseConfig `yaml:"dataSource"` // 数据库配置
+	EsConfig       *EsConfig       `yaml:"es"`         // ES配置
 }
 
 // Setup 载入配置文件
