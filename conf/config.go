@@ -73,6 +73,8 @@ func (e *Settings) Init() {
 	e.EurekaConfig.Init(e)
 	// service注册
 	e.ServerConfig.Init(e)
+	// 初始化ES
+	e.EsConfig.Init(e)
 }
 
 func (e *Settings) SetRouter(routers ...sdk.IRouter) {
