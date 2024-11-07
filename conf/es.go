@@ -12,26 +12,24 @@ import (
 )
 
 type EsConfig struct {
-	Addresses          []string `yaml:"addresses"`          // 地址
-	Username           string   `yaml:"username"`           // 用户名
-	Password           string   `yaml:"password"`           // 密码
-	EnableDebugLogger  bool     `yaml:"enableDebugLogger"`  // 是否开启调试日志
-	EnableRequestBody  bool     `yaml:"enableRequestBody"`  // 是否开启调试日志
-	EnableResponseBody bool     `yaml:"enableResponseBody"` // 是否开启调试日志
+	Addresses             []string `yaml:"addresses"`             // 地址
+	Username              string   `yaml:"username"`              // 用户名
+	Password              string   `yaml:"password"`              // 密码
+	EnableRequestBodyLog  bool     `yaml:"enableRequestBodyLog"`  // 是否开启调试日志
+	EnableResponseBodyLog bool     `yaml:"enableResponseBodyLog"` // 是否开启调试日志
 }
 
 // Init 初始化配置
 func (e *EsConfig) Init(_config *Settings) {
 	log.Printf("[%v] 正在连接ES\n", _config.AppName)
 	client, err := elasticsearch.NewTypedClient(elasticsearch.Config{
-		Addresses:         _config.EsConfig.Addresses,
-		Username:          _config.EsConfig.Username,
-		Password:          _config.EsConfig.Password,
-		EnableDebugLogger: _config.EsConfig.EnableDebugLogger,
+		Addresses: _config.EsConfig.Addresses,
+		Username:  _config.EsConfig.Username,
+		Password:  _config.EsConfig.Password,
 		Logger: &elastictransport.ColorLogger{
 			Output:             os.Stdout,
-			EnableRequestBody:  _config.EsConfig.EnableRequestBody,
-			EnableResponseBody: _config.EsConfig.EnableResponseBody,
+			EnableRequestBody:  _config.EsConfig.EnableRequestBodyLog,
+			EnableResponseBody: _config.EsConfig.EnableResponseBodyLog,
 		},
 	})
 	if err != nil {
